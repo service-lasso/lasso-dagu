@@ -30,4 +30,13 @@ if ($output -notmatch 'pipeline test message') {
   throw 'Echo runtime output mismatch'
 }
 
+$python = Get-Command python -ErrorAction SilentlyContinue
+if (-not $python) {
+  $python = Get-Command python3 -ErrorAction SilentlyContinue
+}
+if (-not $python) {
+  throw 'python/python3 is required for Dagu secret-ref fixture validation'
+}
+& $python.Source (Join-Path $root 'scripts\validate-dagu-secretref-fixtures.py')
+
 Write-Host 'Template tests passed (Windows)'

@@ -1,8 +1,8 @@
-# service-template
+# lasso-dagu
 
-_Status: starter template repo_
+_Status: Dagu service repo bootstrap with Service Lasso integration contracts_
 
-`service-template` is the canonical starting point for new Service Lasso service repos.
+`lasso-dagu` is the Service Lasso service repo for optional Dagu workflow-runner integration.
 
 Use this repo when you want to create a new service repo that already has:
 - the expected service repo layout
@@ -93,9 +93,21 @@ Read in this order if you need the underlying design/spec context:
 - `docs/reference/EXAMPLE-verify.ps1`
 - `docs/reference/EXAMPLE-verify.sh`
 
+## Dagu / Secrets Broker contract
+
+The optional Dagu integration contract for Secrets Broker refs is documented in `docs/secretsbroker-ref-contract.md`.
+
+Key boundary:
+- Dagu workflow YAML references broker refs only, never secret values.
+- Service Lasso resolves refs through `@secretsbroker` at run time.
+- Dagu run logs, params, artifacts, and UI-visible summaries remain metadata-only/redacted.
+- Dagu remains optional; normal Service Lasso service startup and Secrets Broker usage do not depend on Dagu.
+
+Safe contract fixtures live under `fixtures/dagu/` and are checked by the repo test scripts.
+
 ## Purpose
 
-This repo is the canonical starting point for Service Lasso service repos.
+This repo packages and documents Service Lasso's optional Dagu integration.
 
 Its role is to define:
 - one-service-per-repo expectations
