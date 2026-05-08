@@ -1,0 +1,2 @@
+2026-05-08T22:01:00Z workflow=service-lasso-secretref-example run=dagu-run-0002 event=secret_resolution outcome=source_auth_required ref=services/billing/runtime/STRIPE_API_TOKEN sourceId=vault-dev value=<redacted>
+2026-05-08T22:01:01Z workflow=service-lasso-secretref-example run=dagu-run-0002 event=run_blocked state=source_auth_required message=secret_source_auth_required nextAction=reconnect_source

@@ -1,0 +1,3 @@
+2026-05-08T22:00:00Z workflow=service-lasso-secretref-example run=dagu-run-0001 event=secret_resolution outcome=ready refs=services/api/runtime/DATABASE_URL,services/billing/runtime/STRIPE_API_TOKEN values=<redacted>
+2026-05-08T22:00:01Z workflow=service-lasso-secretref-example run=dagu-run-0001 event=task_started task=print-safe-status
+2026-05-08T22:00:02Z workflow=service-lasso-secretref-example run=dagu-run-0001 event=task_completed outcome=ready secretValues=<redacted-by-service-lasso>

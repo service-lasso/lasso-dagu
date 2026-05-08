@@ -1,0 +1,17 @@
+{
+  "workflowId": "service-lasso-secretref-example",
+  "runId": "dagu-run-0001",
+  "brokerRequestId": "sb-dagu-run-0001",
+  "daguOptional": true,
+  "purpose": "dagu-run",
+  "refs": [
+    "services/api/runtime/DATABASE_URL",
+    "services/billing/runtime/STRIPE_API_TOKEN"
+  ],
+  "outcome": "ready",
+  "values": "<redacted>",
+  "audit": {
+    "status": "audit_recorded",
+    "containsSecretMaterial": false
+  }
+}

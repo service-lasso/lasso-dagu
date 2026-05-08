@@ -49,4 +49,6 @@ if [[ "$OUTPUT" != *"pipeline test message"* ]]; then
   exit 1
 fi
 
+python3 "$ROOT/scripts/validate-dagu-secretref-fixtures.py"
+
 echo "Template tests passed ($OS_NAME)"
