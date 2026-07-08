@@ -8,8 +8,8 @@ There are two supported input forms:
 
 | Form | Use case |
 | --- | --- |
-| Inline inputs | Small values defined directly in a generated or custom workflow task. |
-| Input references | Larger or operator-selected payloads stored in Service Lasso and passed by id. |
+| Inline payload | Small values defined directly in a generated or custom workflow task. |
+| Payload references | Larger or operator-selected payloads stored in Service Lasso and passed by id. |
 
 ## Boundary
 
@@ -39,10 +39,7 @@ Example generated Dagu task payload:
   "scheduleId": "manual",
   "stepId": "restore",
   "parentActionId": "restore",
-  "inputRef": {
-    "type": "service-lasso-action-input",
-    "id": "restore_req_123"
-  }
+  "payloadRef": "restore_req_123"
 }
 ```
 
@@ -50,9 +47,9 @@ This is the preferred restore pattern:
 
 ```text
 Service Admin selects files
-Service Lasso creates inputRef
+Service Lasso creates payloadRef
 Dagu runs workflow tasks
-Dagu task calls Service Lasso with inputRef
+Dagu task calls Service Lasso with payloadRef
 Service Lasso resolves and validates the input
 ```
 
@@ -67,7 +64,7 @@ Example:
   "source": "dagu",
   "workflowId": "custom.minecraft-export-world",
   "stepId": "export-world",
-  "inputs": {
+  "payload": {
     "world": "survival",
     "format": "zip",
     "includeLogs": false
@@ -79,15 +76,15 @@ This is useful for Git-controlled workflow files where the author intentionally 
 
 Service Lasso still validates the action id, input fields, permissions, and execution policy before running anything.
 
-## Mixed inputs
+## Mixed payloads
 
-A task may provide both an input reference and inline inputs when the target Service Lasso action allows it.
+A task may provide both a payload reference and inline payload values when the target Service Lasso action allows it.
 
 Recommended rule:
 
 ```text
-inputRef supplies the main payload
-inline inputs may override only explicitly allowed fields
+payloadRef supplies the main payload
+inline payload may override only explicitly allowed fields
 ```
 
 Example:
@@ -97,11 +94,8 @@ Example:
   "source": "dagu",
   "workflowId": "minecraft.restore.manual",
   "stepId": "restore",
-  "inputRef": {
-    "type": "service-lasso-action-input",
-    "id": "restore_req_123"
-  },
-  "inputs": {
+  "payloadRef": "restore_req_123",
+  "payload": {
     "dryRun": true
   }
 }

@@ -62,20 +62,27 @@ def quote_yaml(value: Any) -> str:
     return json.dumps(text)
 
 
-def action_payload(entry: dict[str, Any], step: dict[str, Any]) -> str:
-    payload: dict[str, Any] = {
-        "source": "dagu",
-        "workflowId": entry["id"],
-        "scheduleId": entry.get("scheduleId"),
-        "stepId": step["id"],
-        "parentActionId": entry.get("actionId"),
-    }
-    if step.get("inputRef") is not None:
-        payload["inputRef"] = step["inputRef"]
-    if step.get("inputs") is not None:
-        payload["inputs"] = step["inputs"]
+def step_parent_action_id(entry: dict[str, Any], step: dict[str, Any]) -> str:
+    return str(step.get("parentActionId") or entry.get("actionId") or "")
 
-    return json.dumps({key: value for key, value in payload.items() if value is not None}, separators=(",", ":"), sort_keys=True)
+
+def step_payload_ref(step: dict[str, Any]) -> str | None:
+    if step.get("payloadRef") is not None:
+        return str(step["payloadRef"])
+    legacy = step.get("inputRef")
+    if isinstance(legacy, dict) and legacy.get("id"):
+        return str(legacy["id"])
+    if legacy is not None:
+        return str(legacy)
+    return None
+
+
+def step_inline_payload(step: dict[str, Any]) -> dict[str, Any] | None:
+    if step.get("payload") is not None:
+        return step["payload"]
+    if step.get("inputs") is not None:
+        return step["inputs"]
+    return None
 
 
 def action_url(action_api_url: str, step: dict[str, Any]) -> str:
@@ -118,7 +125,9 @@ def render_workflow(entry: dict[str, Any], action_api_url: str, action_runner: s
     )
 
     for step in steps:
-        payload = action_payload(entry, step)
+        parent_action_id = step_parent_action_id(entry, step)
+        payload_ref = step_payload_ref(step)
+        inline_payload = step_inline_payload(step)
         lines.extend(
             [
                 f"  - name: {quote_yaml(stable_name(str(step['id'])))}",
@@ -127,8 +136,6 @@ def render_workflow(entry: dict[str, Any], action_api_url: str, action_runner: s
                 f"      - {quote_yaml(action_runner)}",
                 "      - --url",
                 f"      - {quote_yaml(action_url(action_api_url, step))}",
-                "      - --payload",
-                f"      - {quote_yaml(payload)}",
                 "      - --workflow-id",
                 f"      - {quote_yaml(workflow_id)}",
                 "      - --schedule-id",
@@ -139,8 +146,19 @@ def render_workflow(entry: dict[str, Any], action_api_url: str, action_runner: s
                 f"      - {quote_yaml(str(step['serviceId']))}",
                 "      - --action-id",
                 f"      - {quote_yaml(str(step['actionId']))}",
+                "      - --parent-action-id",
+                f"      - {quote_yaml(parent_action_id)}",
             ]
         )
+        if payload_ref is not None:
+            lines.extend(["      - --payload-ref", f"      - {quote_yaml(payload_ref)}"])
+        if inline_payload is not None:
+            lines.extend(
+                [
+                    "      - --inline-payload",
+                    f"      - {quote_yaml(json.dumps(inline_payload, separators=(',', ':'), sort_keys=True))}",
+                ]
+            )
 
     return "\n".join(lines) + "\n"
 
@@ -162,6 +180,12 @@ def validate_entry(entry: dict[str, Any]) -> None:
                 raise ValueError(f"workflow {entry['id']} step missing {field}")
         if step.get("type", "service-lasso-action") != "service-lasso-action":
             raise ValueError(f"workflow {entry['id']} step {step['id']} has unsupported type")
+        payload_ref = step_payload_ref(step)
+        if payload_ref is not None and not re.match(r"^[A-Za-z0-9_.-]+$", payload_ref):
+            raise ValueError(f"workflow {entry['id']} step {step['id']} has invalid payloadRef")
+        inline_payload = step_inline_payload(step)
+        if inline_payload is not None and not isinstance(inline_payload, dict):
+            raise ValueError(f"workflow {entry['id']} step {step['id']} payload must be a JSON object")
 
 
 def managed_path(output_dir: Path, entry: dict[str, Any]) -> Path:

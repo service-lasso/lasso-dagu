@@ -77,6 +77,36 @@ def run_runner(url: str) -> subprocess.CompletedProcess[str]:
     )
 
 
+def run_runner_with_payload_args(url: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [
+            sys.executable,
+            str(RUNNER),
+            "--url",
+            url,
+            "--workflow-id",
+            "minecraft.backup.nightly",
+            "--schedule-id",
+            "nightly",
+            "--step-id",
+            "backup",
+            "--service-id",
+            "minecraft",
+            "--action-id",
+            "backup",
+            "--parent-action-id",
+            "backup",
+            "--payload-ref",
+            "backup-policy-nightly",
+            "--inline-payload",
+            '{"mode":"incremental"}',
+        ],
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+
+
 def main() -> int:
     if not SYNC.is_file():
         return fail(f"Missing sync script: {SYNC}")
@@ -140,10 +170,14 @@ def main() -> int:
             "--step-id",
             "--service-id",
             "--action-id",
+            "--parent-action-id",
+            "--payload-ref",
+            "backup-policy-nightly",
+            "--inline-payload",
             "http://127.0.0.1:17883/api/services/minecraft/actions/stop/runs",
             "http://127.0.0.1:17883/api/services/minecraft/actions/backup-files/runs",
             "http://127.0.0.1:17883/api/services/minecraft/actions/start/runs",
-            '\\"inputRef\\":{\\"id\\":\\"backup-policy-nightly\\",\\"type\\":\\"service-lasso-action-input\\"}',
+            '{\\"mode\\":\\"incremental\\"}',
         ]
         for snippet in required:
             if snippet not in text:
@@ -195,6 +229,21 @@ def main() -> int:
         return fail(success.stderr.strip() or success.stdout.strip())
     if "service_lasso_action_accepted" not in success.stdout or "run-test-123" not in success.stdout:
         return fail("action runner must log accepted Service Lasso action run id")
+
+    payload_server, payload_url = run_action_server(200, {"actionRunId": "run-test-456"})
+    try:
+        payload_result = run_runner_with_payload_args(payload_url)
+        posted_payload = json.loads(payload_server.last_body)  # type: ignore[attr-defined]
+    finally:
+        payload_server.shutdown()
+    if payload_result.returncode != 0:
+        return fail(payload_result.stderr.strip() or payload_result.stdout.strip())
+    if posted_payload.get("payloadRef") != "backup-policy-nightly":
+        return fail("action runner must post stored payloadRef ids")
+    if posted_payload.get("payload") != {"mode": "incremental"}:
+        return fail("action runner must post custom inline payload values")
+    if posted_payload.get("parentActionId") != "backup":
+        return fail("action runner must post parent action metadata")
 
     failure_server, failure_url = run_action_server(500, {"error": {"code": "action_failed"}})
     try:

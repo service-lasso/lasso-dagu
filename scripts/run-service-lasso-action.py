@@ -68,6 +68,22 @@ def error_code(data: Any) -> str | None:
     return None
 
 
+def error_message(data: Any) -> str | None:
+    if not isinstance(data, dict):
+        return None
+    for key in ("message", "errorMessage", "reason"):
+        value = data.get(key)
+        if value:
+            return str(value)
+    error = data.get("error")
+    if isinstance(error, dict):
+        for key in ("message", "reason"):
+            value = error.get(key)
+            if value:
+                return str(value)
+    return None
+
+
 def parse_payload(raw: str) -> dict[str, Any]:
     value = json.loads(raw)
     if not isinstance(value, dict):
@@ -75,19 +91,43 @@ def parse_payload(raw: str) -> dict[str, Any]:
     return value
 
 
+def build_payload(args: argparse.Namespace) -> dict[str, Any]:
+    if args.payload:
+        if args.payload_ref or args.inline_payload:
+            raise ValueError("--payload cannot be combined with --payload-ref or --inline-payload")
+        return parse_payload(args.payload)
+
+    payload: dict[str, Any] = {
+        "source": "dagu",
+        "workflowId": args.workflow_id,
+        "scheduleId": args.schedule_id,
+        "stepId": args.step_id,
+    }
+    if args.parent_action_id:
+        payload["parentActionId"] = args.parent_action_id
+    if args.payload_ref:
+        payload["payloadRef"] = args.payload_ref
+    if args.inline_payload:
+        payload["payload"] = parse_payload(args.inline_payload)
+    return payload
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--url", required=True)
-    parser.add_argument("--payload", required=True)
+    parser.add_argument("--payload")
+    parser.add_argument("--payload-ref")
+    parser.add_argument("--inline-payload")
     parser.add_argument("--workflow-id", required=True)
     parser.add_argument("--schedule-id", required=True)
     parser.add_argument("--step-id", required=True)
     parser.add_argument("--service-id", required=True)
     parser.add_argument("--action-id", required=True)
+    parser.add_argument("--parent-action-id")
     args = parser.parse_args()
 
     try:
-        payload = parse_payload(args.payload)
+        payload = build_payload(args)
     except (json.JSONDecodeError, ValueError) as exc:
         return fail(f"invalid Service Lasso action payload: {exc}")
 
@@ -97,6 +137,8 @@ def main() -> int:
         "stepId": args.step_id,
         "serviceId": args.service_id,
         "actionId": args.action_id,
+        "parentActionId": args.parent_action_id,
+        "payloadRef": args.payload_ref,
     }
     emit("service_lasso_action_request", **metadata)
 
@@ -126,6 +168,7 @@ def main() -> int:
             **metadata,
             status=exc.code,
             errorCode=error_code(data),
+            errorMessage=error_message(data),
         )
         return 1
     except urllib.error.URLError as exc:
