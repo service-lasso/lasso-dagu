@@ -127,7 +127,16 @@ Generated workflows are owned by Service Lasso. If a generated workflow file cha
 - overwrite it from the registry on the next sync, or
 - report drift clearly and refuse to run the drifted managed workflow until reconciled.
 
-The first implementation should choose one policy and document it.
+The first implementation uses an overwrite policy. `scripts/sync-service-lasso-workflows.py` rewrites generated workflow files from the registry on every sync. When `--prune-stale` is set, it removes stale files only when they carry `managedBy: service-lasso`; unmanaged/user Dagu workflows are left untouched. Disabled registry entries are omitted and pruned from the generated set.
+
+The initial sync utility is intentionally file/API boundary focused:
+
+```text
+registry JSON file or URL
+  -> workflows/managed/service-lasso/<serviceId>/<workflowId>.yaml
+```
+
+Each generated Dagu task calls the Service Lasso action run API in registry step order. Later launcher integration can call the same utility at Dagu startup and on the configured sync interval.
 
 ## Failure handling
 

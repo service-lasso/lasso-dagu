@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "workflows": [
+    {
+      "id": "minecraft.backup.nightly",
+      "managedBy": "service-lasso",
+      "serviceId": "minecraft",
+      "actionId": "backup",
+      "scheduleId": "nightly",
+      "cron": "0 2 * * *",
+      "enabled": true,
+      "checksum": "sha256:test-registry-v1",
+      "steps": [
+        {
+          "id": "stop",
+          "type": "service-lasso-action",
+          "serviceId": "minecraft",
+          "actionId": "stop"
+        },
+        {
+          "id": "backup",
+          "type": "service-lasso-action",
+          "serviceId": "minecraft",
+          "actionId": "backup-files",
+          "inputRef": {
+            "type": "service-lasso-action-input",
+            "id": "backup-policy-nightly"
+          }
+        },
+        {
+          "id": "start",
+          "type": "service-lasso-action",
+          "serviceId": "minecraft",
+          "actionId": "start",
+          "run": "always",
+          "condition": "was-running-before-workflow"
+        }
+      ]
+    },
+    {
+      "id": "minecraft.backup.disabled",
+      "managedBy": "service-lasso",
+      "serviceId": "minecraft",
+      "actionId": "backup",
+      "scheduleId": "disabled",
+      "cron": "0 3 * * *",
+      "enabled": false,
+      "checksum": "sha256:test-registry-disabled",
+      "steps": [
+        {
+          "id": "backup",
+          "type": "service-lasso-action",
+          "serviceId": "minecraft",
+          "actionId": "backup-files"
+        }
+      ]
+    }
+  ]
+}

@@ -58,5 +58,12 @@ if (-not $python) {
   throw 'python/python3 is required for Dagu secret-ref fixture validation'
 }
 & $python.Source (Join-Path $root 'scripts\validate-dagu-secretref-fixtures.py')
+if ($LASTEXITCODE -ne 0) {
+  throw "validate-dagu-secretref-fixtures.py failed with exit code $LASTEXITCODE"
+}
+& $python.Source (Join-Path $root 'scripts\validate-managed-workflow-sync.py')
+if ($LASTEXITCODE -ne 0) {
+  throw "validate-managed-workflow-sync.py failed with exit code $LASTEXITCODE"
+}
 
 Write-Host 'Dagu service tests passed (Windows)'

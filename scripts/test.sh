@@ -65,5 +65,6 @@ if [[ -f "$ARTIFACT" ]]; then
 fi
 
 python3 "$ROOT/scripts/validate-dagu-secretref-fixtures.py"
+python3 "$ROOT/scripts/validate-managed-workflow-sync.py"
 
 echo "Dagu service tests passed ($OS_NAME)"

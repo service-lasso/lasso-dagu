@@ -97,6 +97,20 @@ Key boundary:
 
 Safe contract fixtures live under `fixtures/dagu/` and are checked by the repo test scripts.
 
+## Managed Workflow Sync
+
+`scripts/sync-service-lasso-workflows.py` consumes a Service Lasso workflow registry JSON file or URL and writes generated Dagu workflow YAML under a managed directory:
+
+```powershell
+python .\scripts\sync-service-lasso-workflows.py `
+  --registry .\fixtures\service-lasso\workflow-registry.sample.json `
+  --output-dir .\workflows\managed\service-lasso `
+  --action-api-url http://127.0.0.1:17883 `
+  --prune-stale
+```
+
+Generated files carry `x-service-lasso.managedBy: service-lasso`, preserve registry step order, call the Service Lasso action run API for each step, and use an overwrite drift policy. Disabled registry entries are omitted; with `--prune-stale`, old generated files are removed while unmanaged workflow files are left untouched.
+
 ## Design Context
 
 Read in this order if you need the broader Service Lasso service-package context:
