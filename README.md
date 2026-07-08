@@ -109,7 +109,7 @@ python .\scripts\sync-service-lasso-workflows.py `
   --prune-stale
 ```
 
-Generated files carry `x-service-lasso.managedBy: service-lasso`, preserve registry step order, call the Service Lasso action run API for each step, and use an overwrite drift policy. Disabled registry entries are omitted; with `--prune-stale`, old generated files are removed while unmanaged workflow files are left untouched.
+Generated files carry `x-service-lasso.managedBy: service-lasso`, preserve registry step order, call the Service Lasso action run API for each step through `scripts/run-service-lasso-action.py`, and use an overwrite drift policy. The runner logs safe workflow/action metadata and the Service Lasso action run id when returned. Disabled registry entries are omitted; with `--prune-stale`, old generated files are removed while unmanaged workflow files are left untouched.
 
 ## Design Context
 

@@ -32,11 +32,13 @@ if (Test-Path $staging) { Remove-Item -Recurse -Force $staging }
 New-Item -ItemType Directory -Force -Path $staging | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $staging 'vendor\dagu') | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $staging 'data'), (Join-Path $staging 'logs'), (Join-Path $staging 'workflows') | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $staging 'scripts') | Out-Null
 
 Copy-Item -Force (Join-Path $root 'service.json') (Join-Path $staging 'service.json')
 Copy-Item -Recurse -Force (Join-Path $runtime 'win32') (Join-Path $staging 'runtime')
 Copy-Item -Recurse -Force (Join-Path $root 'config') (Join-Path $staging 'config')
 Copy-Item -Recurse -Force (Join-Path $root 'fixtures\dagu\workflows') (Join-Path $staging 'workflows\examples')
+Copy-Item -Force (Join-Path $root 'scripts\run-service-lasso-action.py') (Join-Path $staging 'scripts\run-service-lasso-action.py')
 Copy-Item -Force $daguBinary.FullName (Join-Path $staging 'vendor\dagu\dagu.exe')
 
 if (Test-Path $zipPath) { Remove-Item -Force $zipPath }

@@ -14,6 +14,7 @@ from typing import Any
 MANAGED_BY = "service-lasso"
 MANAGED_MARKER = "managedBy: service-lasso"
 DEFAULT_ACTION_API = "http://127.0.0.1:17883"
+DEFAULT_ACTION_RUNNER = "scripts/run-service-lasso-action.py"
 
 
 def fail(message: str) -> int:
@@ -84,7 +85,7 @@ def action_url(action_api_url: str, step: dict[str, Any]) -> str:
     return f"{base}/api/services/{service_id}/actions/{action_id}/runs"
 
 
-def render_workflow(entry: dict[str, Any], action_api_url: str) -> str:
+def render_workflow(entry: dict[str, Any], action_api_url: str, action_runner: str) -> str:
     workflow_id = str(entry["id"])
     service_id = str(entry["serviceId"])
     action_id = str(entry.get("actionId", ""))
@@ -121,16 +122,23 @@ def render_workflow(entry: dict[str, Any], action_api_url: str) -> str:
         lines.extend(
             [
                 f"  - name: {quote_yaml(stable_name(str(step['id'])))}",
-                "    command: curl",
+                "    command: python",
                 "    args:",
-                "      - -fsS",
-                "      - -X",
-                "      - POST",
+                f"      - {quote_yaml(action_runner)}",
+                "      - --url",
                 f"      - {quote_yaml(action_url(action_api_url, step))}",
-                "      - -H",
-                "      - \"Content-Type: application/json\"",
-                "      - -d",
+                "      - --payload",
                 f"      - {quote_yaml(payload)}",
+                "      - --workflow-id",
+                f"      - {quote_yaml(workflow_id)}",
+                "      - --schedule-id",
+                f"      - {quote_yaml(schedule_id)}",
+                "      - --step-id",
+                f"      - {quote_yaml(str(step['id']))}",
+                "      - --service-id",
+                f"      - {quote_yaml(str(step['serviceId']))}",
+                "      - --action-id",
+                f"      - {quote_yaml(str(step['actionId']))}",
             ]
         )
 
@@ -138,7 +146,7 @@ def render_workflow(entry: dict[str, Any], action_api_url: str) -> str:
 
 
 def validate_entry(entry: dict[str, Any]) -> None:
-    required = ["id", "serviceId", "steps"]
+    required = ["id", "serviceId", "actionId", "scheduleId", "steps"]
     missing = [field for field in required if not entry.get(field)]
     if missing:
         raise ValueError(f"workflow entry missing required fields: {', '.join(missing)}")
@@ -183,6 +191,7 @@ def main() -> int:
     parser.add_argument("--registry", required=True, help="Registry JSON file or URL.")
     parser.add_argument("--output-dir", required=True, help="Generated Dagu workflow directory.")
     parser.add_argument("--action-api-url", default=DEFAULT_ACTION_API, help="Service Lasso action API base URL.")
+    parser.add_argument("--action-runner", default=DEFAULT_ACTION_RUNNER, help="Generated Dagu task runner script path.")
     parser.add_argument("--prune-stale", action="store_true", help="Remove stale generated workflows under output-dir.")
     args = parser.parse_args()
 
@@ -201,7 +210,7 @@ def main() -> int:
             validate_entry(entry)
             path = managed_path(output_dir, entry)
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(render_workflow(entry, args.action_api_url), encoding="utf-8")
+            path.write_text(render_workflow(entry, args.action_api_url, args.action_runner), encoding="utf-8")
             expected_paths.add(path)
             written.append(path)
 

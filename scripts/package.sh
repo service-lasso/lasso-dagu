@@ -45,12 +45,13 @@ if [[ -z "$DAGU_BIN" ]]; then
 fi
 
 rm -rf "$STAGING"
-mkdir -p "$STAGING/vendor/dagu" "$STAGING/data" "$STAGING/logs" "$STAGING/workflows"
+mkdir -p "$STAGING/vendor/dagu" "$STAGING/data" "$STAGING/logs" "$STAGING/workflows" "$STAGING/scripts"
 
 cp "$ROOT/service.json" "$STAGING/service.json"
 cp -R "$ROOT/runtime/$PLATFORM" "$STAGING/runtime"
 cp -R "$ROOT/config" "$STAGING/config"
 cp -R "$ROOT/fixtures/dagu/workflows" "$STAGING/workflows/examples"
+cp "$ROOT/scripts/run-service-lasso-action.py" "$STAGING/scripts/run-service-lasso-action.py"
 cp "$DAGU_BIN" "$STAGING/vendor/dagu/dagu"
 chmod +x "$STAGING/vendor/dagu/dagu" "$STAGING/runtime/dagu-service.sh"
 

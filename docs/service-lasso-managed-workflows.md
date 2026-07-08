@@ -118,7 +118,7 @@ Example task payload:
 }
 ```
 
-Dagu should record the Service Lasso action run id when the API returns one.
+Dagu should record the Service Lasso action run id when the API returns one. Generated tasks call `scripts/run-service-lasso-action.py`, which posts the request, fails the task on Service Lasso API errors, and emits redacted JSON log lines containing workflow id, step id, service id, action id, schedule id, HTTP status, and the action run id when available.
 
 ## Drift policy
 

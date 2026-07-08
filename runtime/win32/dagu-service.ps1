@@ -27,6 +27,7 @@ New-Item -ItemType Directory -Force -Path $homeDir, $workflowDir, $logDir | Out-
 $env:DAGU_HOME = $homeDir
 $env:DAGU_WORKFLOWS_DIR = $workflowDir
 $env:DAGU_LOG_DIR = $logDir
+$env:SERVICE_ROOT = $serviceRoot
 
 & $daguBin start-all --host $hostName --port $port
 exit $LASTEXITCODE
