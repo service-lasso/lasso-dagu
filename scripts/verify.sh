@@ -29,6 +29,7 @@ RUN_OUTPUT_DIR="$OUTPUT_DIR/harness-run"
 python3 - <<'PY' "$CONTRACT" "$RESOLVED_CONTRACT"
 import json
 import pathlib
+import platform
 import sys
 
 contract_path = pathlib.Path(sys.argv[1]).resolve()
@@ -36,9 +37,10 @@ resolved_path = pathlib.Path(sys.argv[2]).resolve()
 resolved_path.parent.mkdir(parents=True, exist_ok=True)
 
 doc = json.loads(contract_path.read_text())
-doc['artifact']['path'] = '../dist/echo-service-linux.tar.gz'
-if sys.platform == 'darwin':
-    doc['artifact']['path'] = '../dist/echo-service-darwin.tar.gz'
+system = platform.system().lower()
+doc['artifact']['path'] = '../dist/dagu-service-linux.tar.gz'
+if system == 'darwin':
+    doc['artifact']['path'] = '../dist/dagu-service-darwin.tar.gz'
 resolved_path.write_text(json.dumps(doc, indent=2) + '\n')
 PY
 

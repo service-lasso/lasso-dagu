@@ -4,10 +4,11 @@ Reference packaging scripts:
 - `scripts/package.ps1`
 - `scripts/package.sh`
 
-Current first-pass direction:
-- package the minimal sample service into a release artifact under `dist/`
-- include `service.json`, runtime payload, and config
+Current Dagu direction:
+- package the pinned upstream Dagu binary and Service Lasso launcher into a release artifact under `dist/`
+- include `service.json`, runtime wrapper, config, managed directory placeholders, and workflow examples
 - use the produced artifact as the thing later consumed by the shared harness
+- keep generated Dagu state, logs, and workflow edits out of the release artifact unless they are intentional fixtures/examples
 
 ## App Artifact Modes
 
