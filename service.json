@@ -153,7 +153,9 @@
       "DAGU_MCP_URL": "http://127.0.0.1:${HTTP_PORT}/mcp",
       "DAGU_WORKFLOWS_DIR": "${SERVICE_ROOT}/workflows"
     },
-    "depend_on": [],
+    "depend_on": [
+      "@python"
+    ],
     "healthcheck": {
       "type": "http",
       "url": "http://127.0.0.1:${HTTP_PORT}/",
