@@ -24,6 +24,44 @@ The launcher creates these directories inside the extracted service root when th
 
 Example workflow fixtures are packaged under `workflows/examples/`.
 
+## Endpoints
+
+The root `service.json` uses canonical `endpoints[]` entries for Dagu's service interfaces:
+
+```json
+[
+  {
+    "id": "http",
+    "kind": "network",
+    "direction": "inbound",
+    "transport": "tcp",
+    "protocol": "http",
+    "bind": "127.0.0.1",
+    "port": {
+      "default": 18088,
+      "strategy": "fixed"
+    },
+    "exposure": "local",
+    "required": true,
+    "primary": true
+  },
+  {
+    "id": "ui",
+    "kind": "url",
+    "target": "http",
+    "url": "http://${endpoint.http.bind}:${endpoint.http.port}/"
+  },
+  {
+    "id": "mcp",
+    "kind": "url",
+    "target": "http",
+    "url": "http://${endpoint.http.bind}:${endpoint.http.port}/mcp"
+  }
+]
+```
+
+Variables stay outside endpoint entries. Service-local env, exported global env, and healthcheck fields reference the resolved endpoints with `${endpoint.<id>.<field>}` selectors. Legacy top-level `ports` and `urls` are not authored in the Dagu manifest; `execconfig.serviceport` remains only as a current-runtime compatibility alias until service-lasso/service-lasso#810 is fully available.
+
 ## Service Lasso Environment
 
 The root `service.json` exports these runtime values:
@@ -48,7 +86,7 @@ The Service Lasso healthcheck is HTTP-based and targets the Dagu UI/API root:
 ```json
 {
   "type": "http",
-  "url": "http://127.0.0.1:${HTTP_PORT}/",
+  "url": "${endpoint.ui.url}",
   "expected_status": 200
 }
 ```

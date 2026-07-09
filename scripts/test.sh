@@ -39,6 +39,26 @@ import json, pathlib, sys
 service = json.loads(pathlib.Path('service.json').read_text())
 if service['execconfig']['serviceport'] != 18088:
     sys.exit('service.json Dagu port mismatch')
+if 'ports' in service:
+    sys.exit('service.json still declares legacy top-level ports')
+if 'urls' in service:
+    sys.exit('service.json still declares legacy top-level urls')
+endpoints = {endpoint.get('id'): endpoint for endpoint in service.get('endpoints', [])}
+http = endpoints.get('http')
+if not http or http.get('kind') != 'network':
+    sys.exit('service.json missing canonical http network endpoint')
+if http.get('port', {}).get('default') != 18088 or http.get('protocol') != 'http' or http.get('bind') != '127.0.0.1':
+    sys.exit('service.json http endpoint does not preserve Dagu bind/port/protocol')
+if endpoints.get('ui', {}).get('kind') != 'url' or endpoints.get('mcp', {}).get('kind') != 'url':
+    sys.exit('service.json missing canonical Dagu URL endpoints')
+if service['execconfig']['env']['DAGU_PORT'] != '${endpoint.http.port}':
+    sys.exit('service.json DAGU_PORT does not use endpoint selector')
+if service['execconfig']['globalenv']['DAGU_URL'] != '${endpoint.ui.url}':
+    sys.exit('service.json DAGU_URL does not use endpoint selector')
+if service['execconfig']['globalenv']['DAGU_MCP_URL'] != '${endpoint.mcp.url}':
+    sys.exit('service.json DAGU_MCP_URL does not use endpoint selector')
+if service['execconfig']['healthcheck']['url'] != '${endpoint.ui.url}':
+    sys.exit('service.json healthcheck does not use endpoint selector')
 if 'lasso-dagu' not in service['meta']['repository']['url']:
     sys.exit('service.json repository still points at the template repo')
 tags = ','.join(service['meta'].get('tags', []))

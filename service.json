@@ -14,19 +14,41 @@
   "servicetype": 50,
   "servicelocation": 10,
   "logo": [],
-  "ports": {
-    "http": 18088
-  },
-  "urls": [
+  "endpoints": [
     {
-      "label": "ui",
-      "url": "http://127.0.0.1:${HTTP_PORT}/",
-      "kind": "local"
+      "id": "http",
+      "kind": "network",
+      "label": "Dagu HTTP UI/API",
+      "direction": "inbound",
+      "transport": "tcp",
+      "protocol": "http",
+      "bind": "127.0.0.1",
+      "port": {
+        "default": 18088,
+        "strategy": "fixed"
+      },
+      "exposure": "local",
+      "required": true,
+      "primary": true
     },
     {
-      "label": "mcp",
-      "url": "http://127.0.0.1:${HTTP_PORT}/mcp",
-      "kind": "local"
+      "id": "ui",
+      "kind": "url",
+      "label": "Dagu UI/API",
+      "target": "http",
+      "url": "http://${endpoint.http.bind}:${endpoint.http.port}/",
+      "exposure": "local",
+      "required": true,
+      "primary": true
+    },
+    {
+      "id": "mcp",
+      "kind": "url",
+      "label": "Dagu MCP",
+      "target": "http",
+      "url": "http://${endpoint.http.bind}:${endpoint.http.port}/mcp",
+      "exposure": "local",
+      "required": false
     }
   ],
   "logs": {
@@ -142,15 +164,15 @@
     "executable": "dagu-service",
     "env": {
       "DAGU_HOST": "127.0.0.1",
-      "DAGU_PORT": "${HTTP_PORT}",
+      "DAGU_PORT": "${endpoint.http.port}",
       "DAGU_HOME": "${SERVICE_ROOT}/data",
       "DAGU_WORKFLOWS_DIR": "${SERVICE_ROOT}/workflows",
       "DAGU_LOG_DIR": "${SERVICE_ROOT}/logs",
       "DAGU_CONFIG": "${SERVICE_ROOT}/config/dagu.yaml"
     },
     "globalenv": {
-      "DAGU_URL": "http://127.0.0.1:${HTTP_PORT}/",
-      "DAGU_MCP_URL": "http://127.0.0.1:${HTTP_PORT}/mcp",
+      "DAGU_URL": "${endpoint.ui.url}",
+      "DAGU_MCP_URL": "${endpoint.mcp.url}",
       "DAGU_WORKFLOWS_DIR": "${SERVICE_ROOT}/workflows"
     },
     "depend_on": [
@@ -158,7 +180,7 @@
     ],
     "healthcheck": {
       "type": "http",
-      "url": "http://127.0.0.1:${HTTP_PORT}/",
+      "url": "${endpoint.ui.url}",
       "expected_status": 200,
       "retries": 80,
       "interval": 500
