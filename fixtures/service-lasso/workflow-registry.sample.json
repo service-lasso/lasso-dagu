@@ -7,6 +7,11 @@
       "serviceId": "minecraft",
       "actionId": "backup",
       "scheduleId": "nightly",
+      "serviceAccount": {
+        "type": "service-account",
+        "id": "dagu",
+        "source": "dagu"
+      },
       "cron": "0 2 * * *",
       "enabled": true,
       "checksum": "sha256:test-registry-v1",

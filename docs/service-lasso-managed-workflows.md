@@ -49,6 +49,11 @@ Service Lasso publishes entries like:
   "serviceId": "minecraft",
   "actionId": "backup",
   "scheduleId": "nightly",
+  "serviceAccount": {
+    "type": "service-account",
+    "id": "dagu",
+    "source": "dagu"
+  },
   "cron": "0 2 * * *",
   "enabled": true,
   "checksum": "sha256:example",
@@ -92,6 +97,10 @@ serviceId: minecraft
 actionId: backup
 scheduleId: nightly
 checksum: sha256:example
+actor:
+  type: service-account
+  id: dagu
+  source: dagu
 ```
 
 Manual Dagu workflows must remain separate from generated Service Lasso workflows.
@@ -123,6 +132,14 @@ Example task payload:
 ```json
 {
   "source": "dagu",
+  "actor": {
+    "type": "service-account",
+    "id": "dagu",
+    "source": "dagu",
+    "workflowId": "minecraft.backup.nightly",
+    "scheduleId": "nightly",
+    "stepId": "backup"
+  },
   "workflowId": "minecraft.backup.nightly",
   "scheduleId": "nightly",
   "stepId": "backup",
@@ -131,7 +148,9 @@ Example task payload:
 }
 ```
 
-Dagu should record the Service Lasso action run id when the API returns one. Generated tasks call `scripts/run-service-lasso-action.py`, which posts the request, fails the task on Service Lasso API errors, and emits redacted JSON log lines containing workflow id, step id, service id, action id, parent action id, schedule id, HTTP status, safe error metadata, payload reference id, and the action run id when available.
+Dagu should record the Service Lasso action run id when the API returns one. Generated tasks call `scripts/run-service-lasso-action.py`, which posts the request, fails the task on Service Lasso API errors, and emits redacted JSON log lines containing workflow id, step id, service id, action id, actor type/id/source, parent action id, schedule id, HTTP status, safe error metadata, payload reference id, and the action run id when available.
+
+The Dagu service-account actor is identity metadata, not a bypass credential. Service Lasso maps that actor to permissions, validates the requested service/action/input payload, and writes audit/action history with source `dagu` and the workflow, schedule, and step correlation ids. Generated workflows must not embed operator tokens or long-lived secrets.
 
 ## Drift policy
 

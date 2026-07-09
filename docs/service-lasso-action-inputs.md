@@ -35,6 +35,14 @@ Example generated Dagu task payload:
 ```json
 {
   "source": "dagu",
+  "actor": {
+    "type": "service-account",
+    "id": "dagu",
+    "source": "dagu",
+    "workflowId": "minecraft.restore.manual",
+    "scheduleId": "manual",
+    "stepId": "restore"
+  },
   "workflowId": "minecraft.restore.manual",
   "scheduleId": "manual",
   "stepId": "restore",
@@ -75,6 +83,8 @@ Example task payload:
 This is useful for Git-controlled workflow files where the author intentionally supplies small values.
 
 Service Lasso still validates the action id, input fields, permissions, and execution policy before running anything.
+
+Generated managed workflows always include a Dagu service-account actor context in the action request. Service Lasso uses that actor for permission checks and audit; Dagu does not grant itself broader permissions by choosing a payload.
 
 Example custom Dagu step:
 

@@ -15,6 +15,9 @@ MANAGED_BY = "service-lasso"
 MANAGED_MARKER = "managedBy: service-lasso"
 DEFAULT_ACTION_API = "http://127.0.0.1:17883"
 DEFAULT_ACTION_RUNNER = "scripts/run-service-lasso-action.py"
+DEFAULT_ACTOR_TYPE = "service-account"
+DEFAULT_ACTOR_ID = "dagu"
+DEFAULT_ACTOR_SOURCE = "dagu"
 
 
 def fail(message: str) -> int:
@@ -85,6 +88,23 @@ def step_inline_payload(step: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
+def actor_context(entry: dict[str, Any]) -> dict[str, str]:
+    raw_actor = entry.get("actor")
+    raw_service_account = entry.get("serviceAccount")
+    if isinstance(raw_actor, dict):
+        source = raw_actor
+    elif isinstance(raw_service_account, dict):
+        source = raw_service_account
+    else:
+        source = {}
+
+    return {
+        "type": str(source.get("type") or DEFAULT_ACTOR_TYPE),
+        "id": str(source.get("id") or DEFAULT_ACTOR_ID),
+        "source": str(source.get("source") or DEFAULT_ACTOR_SOURCE),
+    }
+
+
 def action_url(action_api_url: str, step: dict[str, Any]) -> str:
     base = action_api_url.rstrip("/")
     service_id = urllib.request.pathname2url(str(step["serviceId"]))
@@ -98,6 +118,7 @@ def render_workflow(entry: dict[str, Any], action_api_url: str, action_runner: s
     action_id = str(entry.get("actionId", ""))
     schedule_id = str(entry.get("scheduleId", ""))
     checksum = str(entry.get("checksum", ""))
+    actor = actor_context(entry)
     cron = entry.get("cron")
     steps = entry.get("steps") or []
 
@@ -119,6 +140,10 @@ def render_workflow(entry: dict[str, Any], action_api_url: str, action_runner: s
             f"  scheduleId: {quote_yaml(schedule_id)}",
             f"  checksum: {quote_yaml(checksum)}",
             "  driftPolicy: overwrite",
+            "  actor:",
+            f"    type: {quote_yaml(actor['type'])}",
+            f"    id: {quote_yaml(actor['id'])}",
+            f"    source: {quote_yaml(actor['source'])}",
             "",
             "steps:",
         ]
@@ -146,6 +171,12 @@ def render_workflow(entry: dict[str, Any], action_api_url: str, action_runner: s
                 f"      - {quote_yaml(str(step['serviceId']))}",
                 "      - --action-id",
                 f"      - {quote_yaml(str(step['actionId']))}",
+                "      - --actor-type",
+                f"      - {quote_yaml(actor['type'])}",
+                "      - --actor-id",
+                f"      - {quote_yaml(actor['id'])}",
+                "      - --actor-source",
+                f"      - {quote_yaml(actor['source'])}",
                 "      - --parent-action-id",
                 f"      - {quote_yaml(parent_action_id)}",
             ]
@@ -186,6 +217,11 @@ def validate_entry(entry: dict[str, Any]) -> None:
         inline_payload = step_inline_payload(step)
         if inline_payload is not None and not isinstance(inline_payload, dict):
             raise ValueError(f"workflow {entry['id']} step {step['id']} payload must be a JSON object")
+
+    actor = actor_context(entry)
+    for field, value in actor.items():
+        if not re.match(r"^[A-Za-z0-9_.:-]+$", value):
+            raise ValueError(f"workflow {entry['id']} actor {field} has invalid identifier")
 
 
 def managed_path(output_dir: Path, entry: dict[str, Any]) -> Path:
