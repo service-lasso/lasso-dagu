@@ -60,7 +60,7 @@ The root `service.json` uses canonical `endpoints[]` entries for Dagu's service 
 ]
 ```
 
-Variables stay outside endpoint entries. Service-local env, exported global env, and healthcheck fields reference the resolved endpoints with `${endpoint.<id>.<field>}` selectors. Legacy top-level `ports` and `urls` are not authored in the Dagu manifest; `execconfig.serviceport` remains only as a current-runtime compatibility alias until service-lasso/service-lasso#810 is fully available.
+Variables stay outside endpoint entries. Service-local env, exported global env, and healthchecks reference the resolved endpoints with `${endpoint.<id>.<field>}` selectors. Legacy top-level `ports` and `urls` are not authored in the Dagu manifest; `execconfig.serviceport` remains only as a current-runtime compatibility alias until service-lasso/service-lasso#810 is fully available.
 
 ## Service Lasso Environment
 
@@ -81,7 +81,7 @@ It also exports global values for dependants and admin UI integrations:
 
 ## Health
 
-The Service Lasso healthcheck is HTTP-based and targets the Dagu UI/API root:
+The Service Lasso `healthchecks[]` entry is HTTP-based and targets the Dagu UI/API root:
 
 ```json
 {

@@ -57,8 +57,22 @@ if service['execconfig']['globalenv']['DAGU_URL'] != '${endpoint.ui.url}':
     sys.exit('service.json DAGU_URL does not use endpoint selector')
 if service['execconfig']['globalenv']['DAGU_MCP_URL'] != '${endpoint.mcp.url}':
     sys.exit('service.json DAGU_MCP_URL does not use endpoint selector')
-if service['execconfig']['healthcheck']['url'] != '${endpoint.ui.url}':
-    sys.exit('service.json healthcheck does not use endpoint selector')
+healthchecks = {check.get('id'): check for check in service['execconfig'].get('healthchecks', [])}
+ui_healthcheck = healthchecks.get('ui')
+if not ui_healthcheck:
+    sys.exit('service.json missing canonical ui healthcheck')
+if ui_healthcheck.get('url') != '${endpoint.ui.url}':
+    sys.exit('service.json ui healthcheck does not use endpoint selector')
+import subprocess
+tracked_manifests = subprocess.check_output(
+    ['git', 'ls-files', '*service.json'],
+    text=True,
+).splitlines()
+for manifest_name in tracked_manifests:
+    manifest_path = pathlib.Path(manifest_name)
+    manifest = json.loads(manifest_path.read_text())
+    if 'healthcheck' in manifest or 'healthcheck' in manifest.get('execconfig', {}):
+        sys.exit(f'singular healthcheck field remains in manifest: {manifest_path}')
 if 'lasso-dagu' not in service['meta']['repository']['url']:
     sys.exit('service.json repository still points at the template repo')
 tags = ','.join(service['meta'].get('tags', []))

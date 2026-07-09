@@ -2,7 +2,7 @@
 
 `lasso-dagu` packages Dagu as an optional managed Service Lasso workflow-runner service.
 
-The root `service.json` is the canonical Service Lasso manifest for the `dagu` service. It declares the packaged Dagu runtime, local UI/API and MCP endpoints, healthcheck, managed data/config/workflow directories, and exported environment values used by downstream integrations.
+The root `service.json` is the canonical Service Lasso manifest for the `dagu` service. It declares the packaged Dagu runtime, local UI/API and MCP endpoints, healthchecks, managed data/config/workflow directories, and exported environment values used by downstream integrations.
 
 ## What This Service Provides
 

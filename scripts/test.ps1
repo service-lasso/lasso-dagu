@@ -46,8 +46,18 @@ if ($service.execconfig.env.DAGU_PORT -ne '${endpoint.http.port}') {
 if ($service.execconfig.globalenv.DAGU_URL -ne '${endpoint.ui.url}' -or $service.execconfig.globalenv.DAGU_MCP_URL -ne '${endpoint.mcp.url}') {
   throw 'service.json global URL exports do not use endpoint selectors'
 }
-if ($service.execconfig.healthcheck.url -ne '${endpoint.ui.url}') {
-  throw 'service.json healthcheck does not use endpoint selector'
+$daguHealthcheck = @($service.execconfig.healthchecks | Where-Object { $_.id -eq 'ui' }) | Select-Object -First 1
+if (-not $daguHealthcheck) {
+  throw 'service.json missing canonical ui healthcheck'
+}
+if ($daguHealthcheck.url -ne '${endpoint.ui.url}') {
+  throw 'service.json ui healthcheck does not use endpoint selector'
+}
+$manifestHealthcheckMatches = git -C $root ls-files '*service.json' |
+  ForEach-Object { Join-Path $root $_ } |
+  Select-String -Pattern '"healthcheck"\s*:' -List
+if ($manifestHealthcheckMatches) {
+  throw "singular healthcheck field remains in manifest: $($manifestHealthcheckMatches[0].Path)"
 }
 if ($service.meta.repository.url -notmatch 'lasso-dagu') {
   throw 'service.json repository still points at the template repo'

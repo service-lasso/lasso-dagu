@@ -66,7 +66,7 @@ Update these at minimum:
   - `execconfig.executable`
   - `execconfig.args` when needed
   - `execconfig.env`
-  - `execconfig.healthcheck`
+  - `execconfig.healthchecks[]`
 - `verify/service-harness.json`
   - `serviceId`
   - artifact path
@@ -123,14 +123,17 @@ Then package scripts should build the platform artifact before archiving it.
 
 The released `service-lasso-harness` contract is intentionally narrower than `service.json`.
 
-For example, `service.json` may carry an HTTP healthcheck:
+For example, `service.json` may carry an HTTP healthchecks entry:
 
 ```json
-"healthcheck": {
-  "type": "http",
-  "url": "http://127.0.0.1:17890/health",
-  "timeoutSeconds": 5
-}
+"healthchecks": [
+  {
+    "id": "health",
+    "type": "http",
+    "url": "http://127.0.0.1:17890/health",
+    "timeoutSeconds": 5
+  }
+]
 ```
 
 But `verify/service-harness.json` currently must stay compatible with the released harness schema. If the harness does not support a field such as `health.url`, keep the verify contract on the supported shape, for example:
