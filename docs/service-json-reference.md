@@ -344,6 +344,55 @@ Sample:
 }
 ```
 
+## Canonical Endpoints
+
+Current endpoint migration direction:
+- `endpoints[]` is the canonical manifest surface for service interfaces and resources
+- one endpoint describes one concrete network listener, URL, mount, device, or similar resource
+- endpoint ids should prefer lower snake case
+- variables stay outside endpoint entries
+- env, global env, config materialisation, and healthchecks may reference endpoints with `${endpoint.<id>.<field>}` selectors
+- legacy `ports`, `portmapping`, `serviceport*`, and top-level `urls` should be migrated to endpoint entries where they describe real interfaces
+- legacy aliases may remain outside endpoint entries when needed for runtime compatibility
+
+For Dagu, the old authored fields map as follows:
+
+```json
+{
+  "endpoints": [
+    {
+      "id": "http",
+      "kind": "network",
+      "direction": "inbound",
+      "transport": "tcp",
+      "protocol": "http",
+      "bind": "127.0.0.1",
+      "port": {
+        "default": 18088,
+        "strategy": "fixed"
+      },
+      "exposure": "local",
+      "required": true,
+      "primary": true
+    },
+    {
+      "id": "ui",
+      "kind": "url",
+      "target": "http",
+      "url": "http://${endpoint.http.bind}:${endpoint.http.port}/"
+    },
+    {
+      "id": "mcp",
+      "kind": "url",
+      "target": "http",
+      "url": "http://${endpoint.http.bind}:${endpoint.http.port}/mcp"
+    }
+  ]
+}
+```
+
+The Dagu manifest does not author top-level `ports` or `urls`. It retains `execconfig.serviceport` only as a compatibility alias while service-lasso/service-lasso#810 and service-lasso/service-lasso#813 finish landing.
+
 ## Other important manifest aspects
 
 ### Environment generation
@@ -353,7 +402,7 @@ Current broader Service Lasso direction includes:
 
 The sample template keeps this minimal for now.
 
-### Ports and URLs
+### Legacy ports and URLs
 Donor material shows additional fields such as:
 - `serviceportsecondary`
 - `serviceportconsole`
@@ -361,7 +410,7 @@ Donor material shows additional fields such as:
 - `portmapping`
 - `urls`
 
-These are not all used in the minimal sample, but they remain relevant for more complex services.
+These are not all used in the minimal sample, but they remain relevant for more complex services. For new or migrated package authoring, prefer canonical `endpoints[]` entries over adding these legacy fields.
 
 ### Runtime-provider relationships
 Donor material also shows patterns such as:

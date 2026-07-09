@@ -2,7 +2,7 @@
 
 `lasso-dagu` packages Dagu as an optional managed Service Lasso workflow-runner service.
 
-The root `service.json` is the canonical Service Lasso manifest for the `dagu` service. It declares the packaged Dagu runtime, local UI/API endpoint, healthcheck, managed data/config/workflow directories, and exported environment values used by downstream integrations.
+The root `service.json` is the canonical Service Lasso manifest for the `dagu` service. It declares the packaged Dagu runtime, local UI/API and MCP endpoints, healthcheck, managed data/config/workflow directories, and exported environment values used by downstream integrations.
 
 ## What This Service Provides
 
@@ -81,6 +81,14 @@ Global values exported for dependants/admin UI integrations:
 - `DAGU_URL`
 - `DAGU_MCP_URL`
 - `DAGU_WORKFLOWS_DIR`
+
+The manifest authors these interfaces through canonical `endpoints[]` entries:
+
+- `http`: local inbound TCP/HTTP listener on `127.0.0.1:18088`
+- `ui`: URL endpoint selecting `${endpoint.http.bind}` and `${endpoint.http.port}`
+- `mcp`: URL endpoint selecting `${endpoint.http.bind}` and `${endpoint.http.port}`
+
+Legacy `ports` and top-level `urls` authoring are intentionally absent. The current `execconfig.serviceport` value is retained only as a compatibility alias for runtimes that still normalize legacy manifests while service-lasso/service-lasso#810 lands.
 
 See `docs/dagu-service-contract.md` for the detailed Service Lasso contract.
 

@@ -22,6 +22,33 @@ if ($service.id -ne 'dagu') {
 if ($service.execconfig.serviceport -ne 18088) {
   throw 'service.json Dagu port mismatch'
 }
+if ($service.PSObject.Properties.Name -contains 'ports') {
+  throw 'service.json still declares legacy top-level ports'
+}
+if ($service.PSObject.Properties.Name -contains 'urls') {
+  throw 'service.json still declares legacy top-level urls'
+}
+$httpEndpoint = @($service.endpoints | Where-Object { $_.id -eq 'http' -and $_.kind -eq 'network' }) | Select-Object -First 1
+if (-not $httpEndpoint) {
+  throw 'service.json missing canonical http network endpoint'
+}
+if ($httpEndpoint.port.default -ne 18088 -or $httpEndpoint.protocol -ne 'http' -or $httpEndpoint.bind -ne '127.0.0.1') {
+  throw 'service.json http endpoint does not preserve Dagu bind/port/protocol'
+}
+$uiEndpoint = @($service.endpoints | Where-Object { $_.id -eq 'ui' -and $_.kind -eq 'url' }) | Select-Object -First 1
+$mcpEndpoint = @($service.endpoints | Where-Object { $_.id -eq 'mcp' -and $_.kind -eq 'url' }) | Select-Object -First 1
+if (-not $uiEndpoint -or -not $mcpEndpoint) {
+  throw 'service.json missing canonical Dagu URL endpoints'
+}
+if ($service.execconfig.env.DAGU_PORT -ne '${endpoint.http.port}') {
+  throw 'service.json DAGU_PORT does not use endpoint selector'
+}
+if ($service.execconfig.globalenv.DAGU_URL -ne '${endpoint.ui.url}' -or $service.execconfig.globalenv.DAGU_MCP_URL -ne '${endpoint.mcp.url}') {
+  throw 'service.json global URL exports do not use endpoint selectors'
+}
+if ($service.execconfig.healthcheck.url -ne '${endpoint.ui.url}') {
+  throw 'service.json healthcheck does not use endpoint selector'
+}
 if ($service.meta.repository.url -notmatch 'lasso-dagu') {
   throw 'service.json repository still points at the template repo'
 }
