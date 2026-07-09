@@ -1,7 +1,7 @@
 {
-  "serviceId": "echo-service",
+  "serviceId": "dagu",
   "artifact": {
-    "path": "dist/echo-service-win32.zip",
+    "path": "dist/dagu-service-win32.zip",
     "kind": "archive"
   },
   "dependencies": [],

@@ -34,9 +34,15 @@ $resolvedContractPath = Join-Path $root 'verify\service-harness.ci.json'
 $runOutputDir = Join-Path $outputPath 'harness-run'
 
 $doc = Get-Content $contractPath -Raw | ConvertFrom-Json
-$doc.artifact.path = '..\dist\echo-service-win32.zip'
+$doc.artifact.path = '..\dist\dagu-service-win32.zip'
 $doc | ConvertTo-Json -Depth 10 | Set-Content $resolvedContractPath
 
 $harness = Resolve-HarnessBinary
 & $harness validate-contract --contract $resolvedContractPath
+if ($LASTEXITCODE -ne 0) {
+  throw "service-lasso-harness validate-contract failed with exit code $LASTEXITCODE"
+}
 & $harness run --contract $resolvedContractPath --output-dir $runOutputDir
+if ($LASTEXITCODE -ne 0) {
+  throw "service-lasso-harness run failed with exit code $LASTEXITCODE"
+}

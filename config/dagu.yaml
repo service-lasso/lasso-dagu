@@ -1,0 +1,4 @@
+# Service Lasso keeps this file intentionally small for the first Dagu package.
+# Runtime paths are supplied through the managed service environment.
+auth:
+  mode: none
