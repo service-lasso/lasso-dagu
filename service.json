@@ -178,12 +178,15 @@
     "depend_on": [
       "@python"
     ],
-    "healthcheck": {
-      "type": "http",
-      "url": "${endpoint.ui.url}",
-      "expected_status": 200,
-      "retries": 80,
-      "interval": 500
-    }
+    "healthchecks": [
+      {
+        "id": "ui",
+        "type": "http",
+        "url": "${endpoint.ui.url}",
+        "expected_status": 200,
+        "retries": 80,
+        "interval": 500
+      }
+    ]
   }
 }
