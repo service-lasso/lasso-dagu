@@ -97,8 +97,17 @@ def build_payload(args: argparse.Namespace) -> dict[str, Any]:
             raise ValueError("--payload cannot be combined with --payload-ref or --inline-payload")
         return parse_payload(args.payload)
 
+    actor = {
+        "type": args.actor_type,
+        "id": args.actor_id,
+        "source": args.actor_source,
+        "workflowId": args.workflow_id,
+        "scheduleId": args.schedule_id,
+        "stepId": args.step_id,
+    }
     payload: dict[str, Any] = {
         "source": "dagu",
+        "actor": actor,
         "workflowId": args.workflow_id,
         "scheduleId": args.schedule_id,
         "stepId": args.step_id,
@@ -123,6 +132,9 @@ def main() -> int:
     parser.add_argument("--step-id", required=True)
     parser.add_argument("--service-id", required=True)
     parser.add_argument("--action-id", required=True)
+    parser.add_argument("--actor-type", default="service-account")
+    parser.add_argument("--actor-id", default="dagu")
+    parser.add_argument("--actor-source", default="dagu")
     parser.add_argument("--parent-action-id")
     args = parser.parse_args()
 
@@ -137,6 +149,9 @@ def main() -> int:
         "stepId": args.step_id,
         "serviceId": args.service_id,
         "actionId": args.action_id,
+        "actorType": args.actor_type,
+        "actorId": args.actor_id,
+        "actorSource": args.actor_source,
         "parentActionId": args.parent_action_id,
         "payloadRef": args.payload_ref,
     }

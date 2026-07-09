@@ -200,6 +200,12 @@ def main() -> int:
             "--step-id",
             "--service-id",
             "--action-id",
+            "--actor-type",
+            "service-account",
+            "--actor-id",
+            "dagu",
+            "--actor-source",
+            "dagu",
             "--parent-action-id",
             "--payload-ref",
             "backup-policy-nightly",
@@ -274,6 +280,16 @@ def main() -> int:
         return fail("action runner must post custom inline payload values")
     if posted_payload.get("parentActionId") != "backup":
         return fail("action runner must post parent action metadata")
+    actor = posted_payload.get("actor")
+    if actor != {
+        "type": "service-account",
+        "id": "dagu",
+        "source": "dagu",
+        "workflowId": "minecraft.backup.nightly",
+        "scheduleId": "nightly",
+        "stepId": "backup",
+    }:
+        return fail("action runner must post explicit Dagu service-account actor context")
 
     failure_server, failure_url = run_action_server(500, {"error": {"code": "action_failed"}})
     try:
