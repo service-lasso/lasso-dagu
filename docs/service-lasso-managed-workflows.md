@@ -63,7 +63,11 @@ Service Lasso publishes entries like:
       "id": "backup",
       "type": "service-lasso-action",
       "serviceId": "minecraft",
-      "actionId": "backup-files"
+      "actionId": "backup-files",
+      "payloadRef": "nightly-backup",
+      "payload": {
+        "mode": "incremental"
+      }
     },
     {
       "id": "start",
@@ -114,11 +118,12 @@ Example task payload:
   "workflowId": "minecraft.backup.nightly",
   "scheduleId": "nightly",
   "stepId": "backup",
-  "parentActionId": "backup"
+  "parentActionId": "backup",
+  "payloadRef": "nightly-backup"
 }
 ```
 
-Dagu should record the Service Lasso action run id when the API returns one. Generated tasks call `scripts/run-service-lasso-action.py`, which posts the request, fails the task on Service Lasso API errors, and emits redacted JSON log lines containing workflow id, step id, service id, action id, schedule id, HTTP status, and the action run id when available.
+Dagu should record the Service Lasso action run id when the API returns one. Generated tasks call `scripts/run-service-lasso-action.py`, which posts the request, fails the task on Service Lasso API errors, and emits redacted JSON log lines containing workflow id, step id, service id, action id, parent action id, schedule id, HTTP status, safe error metadata, payload reference id, and the action run id when available.
 
 ## Drift policy
 

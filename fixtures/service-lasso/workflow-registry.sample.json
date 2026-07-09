@@ -22,9 +22,9 @@
           "type": "service-lasso-action",
           "serviceId": "minecraft",
           "actionId": "backup-files",
-          "inputRef": {
-            "type": "service-lasso-action-input",
-            "id": "backup-policy-nightly"
+          "payloadRef": "backup-policy-nightly",
+          "payload": {
+            "mode": "incremental"
           }
         },
         {
