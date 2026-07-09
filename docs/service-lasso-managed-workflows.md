@@ -102,6 +102,14 @@ Recommended generated path direction:
 workflows/managed/service-lasso/<serviceId>/<workflowId>.yaml
 ```
 
+User-authored workflows can live beside the managed tree, for example:
+
+```text
+workflows/custom/<team-or-service>/<workflow>.yaml
+```
+
+Those custom workflows may call the same Service Lasso action runner, but they are Git-authored workflow definitions rather than registry-generated files. They should not include `x-service-lasso.managedBy: service-lasso`, and the managed sync/prune loop must leave them unchanged.
+
 ## Generated task behaviour
 
 Each generated Dagu task calls:
@@ -142,6 +150,8 @@ registry JSON file or URL
 ```
 
 Each generated Dagu task calls the Service Lasso action run API in registry step order. Later launcher integration can call the same utility at Dagu startup and on the configured sync interval.
+
+`fixtures/dagu/workflows/custom-service-lasso-inline.yaml` and `fixtures/dagu/workflows/custom-service-lasso-payload-ref.yaml` show custom Git-controlled workflows that call Service Lasso actions with inline payload values and stored payload reference ids. `scripts/validate-managed-workflow-sync.py` verifies that managed sync preserves user-authored workflow files during stale pruning.
 
 ## Failure handling
 

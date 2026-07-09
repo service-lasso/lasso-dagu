@@ -57,7 +57,7 @@ Service Lasso resolves and validates the input
 
 Custom Dagu workflows may pass explicit inline input values.
 
-Example:
+Example task payload:
 
 ```json
 {
@@ -75,6 +75,64 @@ Example:
 This is useful for Git-controlled workflow files where the author intentionally supplies small values.
 
 Service Lasso still validates the action id, input fields, permissions, and execution policy before running anything.
+
+Example custom Dagu step:
+
+```yaml
+name: custom-minecraft-export-world
+description: User-authored workflow that calls a Service Lasso action with small inline values.
+
+steps:
+  - name: export-world
+    command: python
+    args:
+      - scripts/run-service-lasso-action.py
+      - --url
+      - http://127.0.0.1:17883/api/services/minecraft/actions/export-world/runs
+      - --workflow-id
+      - custom.minecraft-export-world
+      - --schedule-id
+      - git-controlled
+      - --step-id
+      - export-world
+      - --service-id
+      - minecraft
+      - --action-id
+      - export-world
+      - --inline-payload
+      - '{"format":"zip","includeLogs":false,"world":"survival"}'
+```
+
+Custom workflows may also pass a stored payload reference id when Service Lasso owns a larger or operator-selected request:
+
+```yaml
+name: custom-minecraft-restore-dry-run
+description: User-authored workflow that reuses a stored Service Lasso payload reference.
+
+steps:
+  - name: restore-dry-run
+    command: python
+    args:
+      - scripts/run-service-lasso-action.py
+      - --url
+      - http://127.0.0.1:17883/api/services/minecraft/actions/restore-world/runs
+      - --workflow-id
+      - custom.minecraft-restore-dry-run
+      - --schedule-id
+      - operator-request
+      - --step-id
+      - restore-dry-run
+      - --service-id
+      - minecraft
+      - --action-id
+      - restore-world
+      - --payload-ref
+      - restore_req_123
+      - --inline-payload
+      - '{"dryRun":true}'
+```
+
+Fixture examples live in `fixtures/dagu/workflows/custom-service-lasso-inline.yaml` and `fixtures/dagu/workflows/custom-service-lasso-payload-ref.yaml`.
 
 ## Mixed payloads
 
@@ -106,6 +164,8 @@ Example:
 When `lasso-dagu` syncs managed workflows from Service Lasso, registry entries may include step-level input defaults.
 
 Generated Dagu workflow files should avoid copying large input payloads into YAML. Prefer stable ids/references for generated Service Lasso workflows.
+
+Generated managed workflows are rewritten from the Service Lasso registry under the managed workflow output directory. User-authored Git workflows are not registry-owned, do not carry `x-service-lasso.managedBy: service-lasso`, and must remain untouched by managed sync and stale-prune operations.
 
 ## Failure behaviour
 

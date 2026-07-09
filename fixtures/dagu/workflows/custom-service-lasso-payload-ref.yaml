@@ -1,0 +1,27 @@
+# User-authored Dagu workflow example for a stored Service Lasso payload reference.
+# The reference id is safe to store in Git; Service Lasso resolves the payload.
+
+name: custom-minecraft-restore-dry-run
+description: Restore a Minecraft world in dry-run mode from a stored payload reference.
+
+steps:
+  - name: restore-dry-run
+    command: python
+    args:
+      - scripts/run-service-lasso-action.py
+      - --url
+      - http://127.0.0.1:17883/api/services/minecraft/actions/restore-world/runs
+      - --workflow-id
+      - custom.minecraft-restore-dry-run
+      - --schedule-id
+      - operator-request
+      - --step-id
+      - restore-dry-run
+      - --service-id
+      - minecraft
+      - --action-id
+      - restore-world
+      - --payload-ref
+      - restore_req_123
+      - --inline-payload
+      - '{"dryRun":true}'
