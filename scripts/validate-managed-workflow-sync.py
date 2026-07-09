@@ -15,6 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SYNC = ROOT / "scripts" / "sync-service-lasso-workflows.py"
 RUNNER = ROOT / "scripts" / "run-service-lasso-action.py"
 REGISTRY = ROOT / "fixtures" / "service-lasso" / "workflow-registry.sample.json"
+CUSTOM_INLINE = ROOT / "fixtures" / "dagu" / "workflows" / "custom-service-lasso-inline.yaml"
+CUSTOM_PAYLOAD_REF = ROOT / "fixtures" / "dagu" / "workflows" / "custom-service-lasso-payload-ref.yaml"
 
 
 def fail(message: str) -> int:
@@ -114,6 +116,24 @@ def main() -> int:
         return fail(f"Missing action runner: {RUNNER}")
     if not REGISTRY.is_file():
         return fail(f"Missing sample registry: {REGISTRY}")
+    if not CUSTOM_INLINE.is_file():
+        return fail(f"Missing custom inline workflow fixture: {CUSTOM_INLINE}")
+    if not CUSTOM_PAYLOAD_REF.is_file():
+        return fail(f"Missing custom payload-ref workflow fixture: {CUSTOM_PAYLOAD_REF}")
+
+    custom_inline_text = CUSTOM_INLINE.read_text(encoding="utf-8")
+    if "--inline-payload" not in custom_inline_text or '"world":"survival"' not in custom_inline_text:
+        return fail("custom inline workflow fixture must call Service Lasso with inline payload values")
+    if "managedBy: service-lasso" in custom_inline_text:
+        return fail("custom inline workflow fixture must not be marked as Service Lasso managed")
+
+    custom_ref_text = CUSTOM_PAYLOAD_REF.read_text(encoding="utf-8")
+    if "--payload-ref" not in custom_ref_text or "restore_req_123" not in custom_ref_text:
+        return fail("custom payload-ref workflow fixture must call Service Lasso with a stored payload reference id")
+    if '"dryRun":true' not in custom_ref_text:
+        return fail("custom payload-ref workflow fixture must show allowed inline override values")
+    if "managedBy: service-lasso" in custom_ref_text:
+        return fail("custom payload-ref workflow fixture must not be marked as Service Lasso managed")
 
     with tempfile.TemporaryDirectory(prefix="lasso-dagu-sync-") as temp:
         output_dir = Path(temp) / "workflows" / "managed" / "service-lasso"
@@ -122,7 +142,11 @@ def main() -> int:
         stale = stale_dir / "stale-managed.yaml"
         stale.write_text("x-service-lasso:\n  managedBy: service-lasso\n", encoding="utf-8")
         unmanaged = output_dir / "custom-workflow.yaml"
-        unmanaged.write_text("name: custom\n", encoding="utf-8")
+        unmanaged.write_text(custom_inline_text, encoding="utf-8")
+        custom_dir = Path(temp) / "workflows" / "custom" / "minecraft"
+        custom_dir.mkdir(parents=True, exist_ok=True)
+        custom_workflow = custom_dir / CUSTOM_PAYLOAD_REF.name
+        custom_workflow.write_text(custom_ref_text, encoding="utf-8")
 
         result = subprocess.run(
             [
@@ -156,6 +180,12 @@ def main() -> int:
             return fail("stale generated workflow was not pruned")
         if not unmanaged.exists():
             return fail("unmanaged workflow was incorrectly removed")
+        if unmanaged.read_text(encoding="utf-8") != custom_inline_text:
+            return fail("unmanaged workflow under the output directory was modified")
+        if not custom_workflow.exists():
+            return fail("user-authored workflow outside the managed output directory was removed")
+        if custom_workflow.read_text(encoding="utf-8") != custom_ref_text:
+            return fail("user-authored workflow outside the managed output directory was modified")
 
         text = generated.read_text(encoding="utf-8")
         required = [

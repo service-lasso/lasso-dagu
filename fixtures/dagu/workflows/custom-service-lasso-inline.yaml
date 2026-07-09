@@ -1,0 +1,25 @@
+# User-authored Dagu workflow example for small inline Service Lasso action inputs.
+# This file is intentionally not managed by Service Lasso workflow sync.
+
+name: custom-minecraft-export-world
+description: Export a Minecraft world through Service Lasso with explicit small values.
+
+steps:
+  - name: export-world
+    command: python
+    args:
+      - scripts/run-service-lasso-action.py
+      - --url
+      - http://127.0.0.1:17883/api/services/minecraft/actions/export-world/runs
+      - --workflow-id
+      - custom.minecraft-export-world
+      - --schedule-id
+      - git-controlled
+      - --step-id
+      - export-world
+      - --service-id
+      - minecraft
+      - --action-id
+      - export-world
+      - --inline-payload
+      - '{"format":"zip","includeLogs":false,"world":"survival"}'
