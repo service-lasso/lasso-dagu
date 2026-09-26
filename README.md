@@ -1,5 +1,9 @@
 # lasso-dagu
 
+## Canonical reader guidance
+
+Start with [docs/components/app-service-tasks.md](https://github.com/service-lasso/service-lasso/blob/develop/docs/components/app-service-tasks.md). This page retains Dagu-owned component/reference contracts. Managed/custom workflow separation and opt-in stale pruning remain required. Scheduling and action-input design contracts do not prove automatic runtime integration, installed acceptance or publication. Migration: [Dagu #23](https://github.com/service-lasso/lasso-dagu/issues/23), [Core #1419](https://github.com/service-lasso/service-lasso/issues/1419), reviewed source `c6d4a55cb9263e9ba73fe09dbe975ec40dbc837d`.
+
 `lasso-dagu` packages Dagu as an optional managed Service Lasso workflow-runner service.
 
 The root `service.json` is the canonical Service Lasso manifest for the `dagu` service. It declares the packaged Dagu runtime, local UI/API and MCP endpoints, healthchecks, managed data/config/workflow directories, and exported environment values used by downstream integrations.
