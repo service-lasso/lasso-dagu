@@ -1,5 +1,9 @@
 # Service Lasso Action Inputs in Dagu
 
+## Canonical reader guidance
+
+Start with [docs/components/app-service-tasks.md](https://github.com/service-lasso/service-lasso/blob/develop/docs/components/app-service-tasks.md) and [docs/reference/service-action-inputs.md](https://github.com/service-lasso/service-lasso/blob/develop/docs/reference/service-action-inputs.md). This page retains Dagu-owned component/reference contracts. Managed/custom workflow separation and opt-in stale pruning remain required. Scheduling and action-input design contracts do not prove automatic runtime integration, installed acceptance or publication. Migration: [Dagu #23](https://github.com/service-lasso/lasso-dagu/issues/23), [Core #1419](https://github.com/service-lasso/service-lasso/issues/1419), reviewed source `c6d4a55cb9263e9ba73fe09dbe975ec40dbc837d`.
+
 _Status: design contract for passing inputs from Dagu to Service Lasso actions._
 
 Dagu workflows can call Service Lasso actions with inputs.
